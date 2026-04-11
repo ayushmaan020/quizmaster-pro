@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — QuizMaster Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07070f;--s1:#0f0f1c;--s2:#171726;--s3:#1e1e30;
+  --border:#252540;--text:#e8e8f2;--muted:#5a5a80;
+  --accent:#7c3aed;--a2:#06b6d4;--a3:#f472b6;
+  --green:#4ade80;--red:#f87171;--yellow:#fbbf24;--orange:#fb923c;
+  --sidebar:240px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;display:flex}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;overflow-y:auto}
+.sb-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.sb-logo .logo{font-size:16px;font-weight:800;letter-spacing:-.3px}
+.sb-logo .logo span{color:var(--accent)}
+.sb-logo .badge{display:inline-block;background:rgba(124,58,237,.15);color:var(--accent);font-size:9px;font-weight:700;font-family:'Space Mono',monospace;padding:2px 8px;border-radius:99px;margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+.sb-section{padding:12px 12px 4px;font-size:9px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;cursor:pointer;margin:2px 8px;font-size:13px;font-weight:700;color:var(--muted);transition:all .15s;border:none;background:none;width:calc(100% - 16px);text-align:left}
+.sb-item:hover{background:var(--s2);color:var(--text)}
+.sb-item.active{background:rgba(124,58,237,.15);color:var(--accent)}
+.sb-item .icon{font-size:16px;width:20px;text-align:center}
+.sb-item .badge-count{margin-left:auto;background:var(--s3);padding:2px 7px;border-radius:99px;font-size:10px;font-family:'Space Mono',monospace}
+.sb-footer{margin-top:auto;padding:16px 12px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--s2);border:1px solid var(--border)}
+.sb-user .av{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--a2));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sb-user .uname{font-size:12px;font-weight:700}
+.sb-user .urole{font-size:10px;color:var(--accent);font-family:'Space Mono',monospace}
+.sb-logout{margin-top:8px;width:100%;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:8px;border-radius:8px;cursor:pointer;transition:all .15s}
+.sb-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;border-bottom:1px solid var(--border);background:var(--s1);flex-shrink:0}
+.topbar h1{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.topbar .sub{font-size:12px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6d28d9}
+.btn-ghost{background:var(--s2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.btn-danger:hover{background:rgba(248,113,113,.22)}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:7px}
+
+.content{flex:1;overflow-y:auto;padding:24px 28px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+/* ── Panel switching ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── Stat cards ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px 18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc-blue::before{background:linear-gradient(90deg,var(--accent),var(--a2))}
+.sc-pink::before{background:linear-gradient(90deg,var(--a3),var(--accent))}
+.sc-green::before{background:linear-gradient(90deg,var(--green),var(--a2))}
+.sc-orange::before{background:linear-gradient(90deg,var(--orange),var(--yellow))}
+.sc-red::before{background:linear-gradient(90deg,var(--red),var(--orange))}
+.stat-val{font-size:32px;font-weight:800;font-family:'Space Mono',monospace;margin-bottom:4px}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:600}
+
+/* ── Filter bar ── */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.fi{background:var(--s2);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;padding:8px 12px;border-radius:9px;outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--muted);font-weight:400}
+.fi-search{flex:1;min-width:200px}
+.fi-sel{cursor:pointer}
+
+/* ── Table ── */
+.tbl-wrap{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tbl-head{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--s2)}
+.tbl-head span{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}
+table{width:100%;border-collapse:collapse}
+th{padding:11px 16px;text-align:left;font-size:10px;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--s2)}
+td{padding:11px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.td-q{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-ans{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px}
+
+/* ── Badges ── */
+.badge{font-size:10px;font-weight:700;font-family:'Space Mono',monospace;padding:3px 8px;border-radius:6px;text-transform:uppercase}
+.b-easy{background:rgba(74,222,128,.12);color:var(--green)}
+.b-medium{background:rgba(251,191,36,.12);color:var(--yellow)}
+.b-hard{background:rgba(248,113,113,.12);color:var(--red)}
+.b-admin{background:rgba(124,58,237,.15);color:var(--accent)}
+.b-user{background:var(--s3);color:var(--muted)}
+.b-active{background:rgba(74,222,128,.1);color:var(--green)}
+.b-inactive{background:rgba(248,113,113,.1);color:var(--red)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:18px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:16px;font-weight:800}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;border-radius:6px;transition:color .15s;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* ── Form inside modal ── */
+.form-group{margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;font-family:'Space Mono',monospace}
+.fi-full{width:100%}
+textarea{background:var(--s2);border:1.5px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;padding:10px 12px;border-radius:10px;outline:none;resize:vertical;width:100%;transition:border-color .15s;min-height:80px}
+textarea:focus{border-color:var(--accent)}
+input[type=text],input[type=number],input[type=email],select{background:var(--s2);border:1.5px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:9px 12px;border-radius:10px;outline:none;transition:border-color .15s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--s2)}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:700;z-index:999;transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:rgba(74,222,128,.12);border:1px solid var(--green);color:var(--green)}
+#toast.err{background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red)}
+
+/* ── Empty ── */
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .ei{font-size:36px;margin-bottom:10px}
+
+/* ── Confirm box ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:28px;max-width:380px;width:90%;text-align:center}
+.confirm-box h3{font-size:16px;font-weight:800;margin-bottom:8px}
+.confirm-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="logo">Quiz<span>Master</span> Pro</div>
+    <div class="badge">Admin Panel</div>
+  </div>
+
+  <div class="sb-section">Overview</div>
+  <button class="sb-item active" onclick="showPanel('dashboard',this)">
+    <span class="icon">📊</span> Dashboard
+  </button>
+
+  <div class="sb-section">Quiz</div>
+  <button class="sb-item" onclick="showPanel('quiz-q',this)">
+    <span class="icon">❓</span> Quiz Questions
+    <span class="badge-count" id="sb-quiz-cnt">—</span>
+  </button>
+
+  <div class="sb-section">Interview</div>
+  <button class="sb-item" onclick="showPanel('iv-q',this)">
+    <span class="icon">💼</span> Interview Questions
+    <span class="badge-count" id="sb-iv-cnt">—</span>
+  </button>
+
+  <div class="sb-section">Users</div>
+  <button class="sb-item" onclick="showPanel('users',this)">
+    <span class="icon">👥</span> Manage Users
+    <span class="badge-count" id="sb-users-cnt">—</span>
+  </button>
+
+  <div class="sb-section">App</div>
+  <button class="sb-item" onclick="window.open('/','_blank')">
+    <span class="icon">🎮</span> View Quiz App
+  </button>
+  <button class="sb-item" onclick="window.open('/interview','_blank')">
+    <span class="icon">📚</span> View Interview Prep
+  </button>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="av">👑</div>
+      <div>
+        <div class="uname" id="sb-uname">Admin</div>
+        <div class="urole">Administrator</div>
+      </div>
+    </div>
+    <button class="sb-logout" onclick="doLogout()">⏻ Sign Out</button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <div>
+      <h1 id="topbar-title">Dashboard</h1>
+      <div class="sub" id="topbar-sub">Overview of all content</div>
+    </div>
+    <div class="topbar-right" id="topbar-actions"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card sc-blue"><div class="stat-val" id="s-users">—</div><div class="stat-lbl">Registered Users</div></div>
+        <div class="stat-card sc-green"><div class="stat-val" id="s-quiz">—</div><div class="stat-lbl">Quiz Questions</div></div>
+        <div class="stat-card sc-pink"><div class="stat-val" id="s-iv">—</div><div class="stat-lbl">Interview Questions</div></div>
+        <div class="stat-card sc-orange"><div class="stat-val" id="s-games">—</div><div class="stat-lbl">Games Played</div></div>
+        <div class="stat-card sc-red"><div class="stat-val" id="s-companies">—</div><div class="stat-lbl">Companies</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><b>Questions per Category</b><span>Quiz breakdown</span></div>
+        <table id="cat-table"><thead><tr><th>#</th><th>Category</th><th>Questions</th></tr></thead><tbody id="cat-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ── QUIZ QUESTIONS ── -->
+    <div class="panel" id="panel-quiz-q">
+      <div class="filter-bar">
+        <input class="fi fi-search" id="qq-search" type="text" placeholder="🔍 Search questions..." oninput="filterQuizQ()">
+        <select class="fi fi-sel" id="qq-cat" onchange="filterQuizQ()">
+          <option value="">All Categories</option>
+        </select>
+        <select class="fi fi-sel" id="qq-diff" onchange="filterQuizQ()">
+          <option value="">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace" id="qq-count">— questions</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><b>Quiz Questions</b><span id="qq-tbl-sub">All categories</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Category</th><th>Question</th><th>Answer</th><th>Difficulty</th><th>Actions</th></tr></thead>
+          <tbody id="qq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── INTERVIEW QUESTIONS ── -->
+    <div class="panel" id="panel-iv-q">
+      <div class="filter-bar">
+        <input class="fi fi-search" id="iq-search" type="text" placeholder="🔍 Search questions..." oninput="filterIvQ()">
+        <select class="fi fi-sel" id="iq-company" onchange="filterIvQ()">
+          <option value="">All Companies</option>
+        </select>
+        <select class="fi fi-sel" id="iq-diff" onchange="filterIvQ()">
+          <option value="">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+        <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace" id="iq-count">— questions</span>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-head"><b>Interview Questions</b><span id="iq-tbl-sub">All companies</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Company</th><th>Topic</th><th>Question</th><th>Difficulty</th><th>Rating</th><th>Actions</th></tr></thead>
+          <tbody id="iq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="panel" id="panel-users">
+      <div class="tbl-wrap">
+        <div class="tbl-head"><b>Registered Users</b><span id="users-sub">All users</span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Full Name</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── QUIZ QUESTION MODAL ── -->
+<div class="overlay" id="quiz-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="qm-title">Add Quiz Question</h2>
+      <button class="modal-close" onclick="closeModal('quiz-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="qm-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select class="fi-full" id="qm-cat"></select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select class="fi-full" id="qm-diff">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Question</label>
+        <textarea id="qm-question" placeholder="Enter the question..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Option A</label><input type="text" id="qm-a" class="fi-full" placeholder="Option A"></div>
+        <div class="form-group"><label>Option B</label><input type="text" id="qm-b" class="fi-full" placeholder="Option B"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Option C</label><input type="text" id="qm-c" class="fi-full" placeholder="Option C"></div>
+        <div class="form-group"><label>Option D</label><input type="text" id="qm-d" class="fi-full" placeholder="Option D"></div>
+      </div>
+      <div class="form-group">
+        <label>Correct Answer</label>
+        <select class="fi-full" id="qm-correct">
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('quiz-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuizQ()">💾 Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── INTERVIEW QUESTION MODAL ── -->
+<div class="overlay" id="iv-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="im-title">Add Interview Question</h2>
+      <button class="modal-close" onclick="closeModal('iv-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="im-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company</label>
+          <select class="fi-full" id="im-company"></select>
+        </div>
+        <div class="form-group">
+          <label>Topic</label>
+          <input type="text" id="im-topic" class="fi-full" placeholder="e.g. Python, DSA, OOP">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Question</label>
+        <textarea id="im-question" placeholder="Enter the interview question..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Model Answer</label>
+        <textarea id="im-answer" placeholder="Detailed model answer..." style="min-height:120px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Pro Tips / Notes</label>
+        <textarea id="im-notes" placeholder="Interview tips, follow-up questions..."></textarea>
+      </div>
+      <div class="form-row3">
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select class="fi-full" id="im-diff">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Rating (1-5)</label>
+          <input type="number" id="im-rating" class="fi-full" value="4.0" min="1" max="5" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>Times Asked</label>
+          <input type="number" id="im-times" class="fi-full" value="1" min="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Last Asked Year</label>
+          <input type="number" id="im-year" class="fi-full" placeholder="e.g. 2024" min="2010" max="2030">
+        </div>
+        <div class="form-group">
+          <label>Years Asked (comma-sep)</label>
+          <input type="text" id="im-years" class="fi-full" placeholder="2022,2023,2024">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Role Level</label>
+          <input type="text" id="im-role" class="fi-full" placeholder="Fresher / 1yr+ / Any">
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-sep)</label>
+          <input type="text" id="im-tags" class="fi-full" placeholder="python,oop,basics">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('iv-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIvQ()">💾 Save Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM ── -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3 id="conf-title">Are you sure?</h3>
+    <p id="conf-msg">This action cannot be undone.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="conf-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+var allQuizQ = [], allIvQ = [], allUsers = [];
+var categories = [], companies = [];
+
+// ── Init ──────────────────────────────────────────────────────────────────
+function init() {
+  get('/api/auth/me').then(function(d) {
+    if (!d.logged_in) { location.href='/login'; return; }
+    document.getElementById('sb-uname').textContent = d.full_name || d.username;
+    loadDashboard();
+  });
+}
+
+// ── Sidebar navigation ────────────────────────────────────────────────────
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.sb-item').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  var titles = {
+    'dashboard': ['Dashboard','Overview of all content'],
+    'quiz-q':    ['Quiz Questions','Add, edit, delete quiz questions'],
+    'iv-q':      ['Interview Questions','Add, edit, delete interview questions'],
+    'users':     ['Manage Users','View and manage registered users'],
+  };
+  var t = titles[name] || ['Admin',''];
+  document.getElementById('topbar-title').textContent = t[0];
+  document.getElementById('topbar-sub').textContent   = t[1];
+
+  var acts = document.getElementById('topbar-actions');
+  acts.innerHTML = '';
+  if (name === 'quiz-q') {
+    acts.innerHTML = '<button class="btn btn-primary" onclick="openAddQuizQ()">+ Add Question</button>';
+    loadQuizQ();
+  } else if (name === 'iv-q') {
+    acts.innerHTML = '<button class="btn btn-primary" onclick="openAddIvQ()">+ Add Question</button>';
+    loadIvQ();
+  } else if (name === 'users') {
+    loadUsers();
+  }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────
+function loadDashboard() {
+  get('/api/admin/stats').then(function(d) {
+    document.getElementById('s-users').textContent    = d.total_users;
+    document.getElementById('s-quiz').textContent     = d.total_quiz_q;
+    document.getElementById('s-iv').textContent       = d.total_iv_q;
+    document.getElementById('s-games').textContent    = d.total_games;
+    document.getElementById('s-companies').textContent= d.total_companies;
+    document.getElementById('sb-quiz-cnt').textContent = d.total_quiz_q;
+    document.getElementById('sb-iv-cnt').textContent   = d.total_iv_q;
+    document.getElementById('sb-users-cnt').textContent= d.total_users;
+    var tb = document.getElementById('cat-tbody');
+    tb.innerHTML = d.categories.map(function(c, i) {
+      return '<tr><td><b>'+(i+1)+'</b></td><td>'+esc(c.icon)+' '+esc(c.name)+'</td><td><b>'+c.cnt+'</b></td></tr>';
+    }).join('');
+  });
+  loadCategories();
+  loadCompanies();
+}
+
+function loadCategories() {
+  get('/api/admin/categories').then(function(d) {
+    categories = d;
+    var sel1 = document.getElementById('qq-cat');
+    var sel2 = document.getElementById('qm-cat');
+    var opts = d.map(function(c){ return '<option value="'+c.id+'">'+esc(c.icon)+' '+esc(c.name)+'</option>'; }).join('');
+    sel1.innerHTML = '<option value="">All Categories</option>' + opts;
+    sel2.innerHTML = opts;
+  });
+}
+
+function loadCompanies() {
+  get('/api/admin/companies').then(function(d) {
+    companies = d;
+    var sel1 = document.getElementById('iq-company');
+    var sel2 = document.getElementById('im-company');
+    var opts = d.map(function(c){ return '<option value="'+c.id+'">'+esc(c.logo)+' '+esc(c.name)+'</option>'; }).join('');
+    sel1.innerHTML = '<option value="">All Companies</option>' + opts;
+    sel2.innerHTML = opts;
+  });
+}
+
+// ── Quiz Questions ────────────────────────────────────────────────────────
+function loadQuizQ() {
+  get('/api/admin/quiz/questions').then(function(d) {
+    allQuizQ = d;
+    renderQuizQ(d);
+  });
+}
+
+function filterQuizQ() {
+  var s    = document.getElementById('qq-search').value.toLowerCase();
+  var cat  = document.getElementById('qq-cat').value;
+  var diff = document.getElementById('qq-diff').value;
+  var res  = allQuizQ.filter(function(q) {
+    return (!s || q.question.toLowerCase().includes(s))
+        && (!cat  || String(q.category_id) === cat)
+        && (!diff || q.difficulty === diff);
+  });
+  renderQuizQ(res);
+}
+
+function renderQuizQ(qs) {
+  document.getElementById('qq-count').textContent = qs.length + ' questions';
+  var tb = document.getElementById('qq-tbody');
+  if (!qs.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="ei">🔍</div><p>No questions found</p></div></td></tr>'; return; }
+  tb.innerHTML = qs.map(function(q) {
+    var corr = {'A':q.option_a,'B':q.option_b,'C':q.option_c,'D':q.option_d}[q.correct_answer] || q.correct_answer;
+    return '<tr>'
+      +'<td style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px">#'+q.id+'</td>'
+      +'<td style="font-size:11px;color:var(--a2)">'+esc(q.cat_name)+'</td>'
+      +'<td class="td-q" title="'+esc(q.question)+'">'+esc(q.question)+'</td>'
+      +'<td class="td-ans" title="'+esc(corr)+'">'+q.correct_answer+': '+esc(corr)+'</td>'
+      +'<td><span class="badge b-'+q.difficulty+'">'+q.difficulty+'</span></td>'
+      +'<td><div style="display:flex;gap:4px">'
+        +'<button class="btn btn-ghost btn-sm" onclick="openEditQuizQ('+q.id+')">✏️ Edit</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'quiz\','+q.id+',\'quiz question #'+q.id+'\')">🗑</button>'
+      +'</div></td>'
+    +'</tr>';
+  }).join('');
+}
+
+function openAddQuizQ() {
+  document.getElementById('qm-title').textContent = 'Add Quiz Question';
+  document.getElementById('qm-id').value = '';
+  document.getElementById('qm-question').value = '';
+  document.getElementById('qm-a').value = '';
+  document.getElementById('qm-b').value = '';
+  document.getElementById('qm-c').value = '';
+  document.getElementById('qm-d').value = '';
+  document.getElementById('qm-correct').value = 'A';
+  document.getElementById('qm-diff').value = 'medium';
+  openModal('quiz-modal');
+}
+
+function openEditQuizQ(id) {
+  var q = allQuizQ.find(function(x){ return x.id===id; });
+  if (!q) return;
+  document.getElementById('qm-title').textContent = 'Edit Quiz Question #'+id;
+  document.getElementById('qm-id').value       = id;
+  document.getElementById('qm-cat').value      = q.category_id;
+  document.getElementById('qm-question').value = q.question;
+  document.getElementById('qm-a').value        = q.option_a;
+  document.getElementById('qm-b').value        = q.option_b;
+  document.getElementById('qm-c').value        = q.option_c;
+  document.getElementById('qm-d').value        = q.option_d;
+  document.getElementById('qm-correct').value  = q.correct_answer;
+  document.getElementById('qm-diff').value     = q.difficulty;
+  openModal('quiz-modal');
+}
+
+function saveQuizQ() {
+  var id       = document.getElementById('qm-id').value;
+  var cat_id   = parseInt(document.getElementById('qm-cat').value);
+  var question = document.getElementById('qm-question').value.trim();
+  var a        = document.getElementById('qm-a').value.trim();
+  var b        = document.getElementById('qm-b').value.trim();
+  var c        = document.getElementById('qm-c').value.trim();
+  var d2       = document.getElementById('qm-d').value.trim();
+  var correct  = document.getElementById('qm-correct').value;
+  var diff     = document.getElementById('qm-diff').value;
+  if (!question||!a||!b||!c||!d2) { toast('Fill all fields!','err'); return; }
+  var body = {category_id:cat_id,question:question,option_a:a,option_b:b,option_c:c,option_d:d2,correct_answer:correct,difficulty:diff};
+  var url    = id ? '/api/admin/quiz/questions/'+id : '/api/admin/quiz/questions';
+  var method = id ? 'PUT' : 'POST';
+  post(url, body, method).then(function(res) {
+    if (res.error) { toast(res.error,'err'); return; }
+    toast(id ? 'Question updated!' : 'Question added!','ok');
+    closeModal('quiz-modal');
+    loadQuizQ();
+    loadDashboard();
+  });
+}
+
+// ── Interview Questions ───────────────────────────────────────────────────
+function loadIvQ() {
+  get('/api/admin/interview/questions').then(function(d) {
+    allIvQ = d;
+    renderIvQ(d);
+  });
+}
+
+function filterIvQ() {
+  var s    = document.getElementById('iq-search').value.toLowerCase();
+  var co   = document.getElementById('iq-company').value;
+  var diff = document.getElementById('iq-diff').value;
+  var res  = allIvQ.filter(function(q) {
+    return (!s || q.question.toLowerCase().includes(s) || (q.topic||'').toLowerCase().includes(s))
+        && (!co   || String(q.company_id) === co)
+        && (!diff || q.difficulty === diff);
+  });
+  renderIvQ(res);
+}
+
+function renderIvQ(qs) {
+  document.getElementById('iq-count').textContent = qs.length + ' questions';
+  var tb = document.getElementById('iq-tbody');
+  if (!qs.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="ei">🔍</div><p>No questions found</p></div></td></tr>'; return; }
+  tb.innerHTML = qs.map(function(q) {
+    return '<tr>'
+      +'<td style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px">#'+q.id+'</td>'
+      +'<td style="font-size:11px;color:var(--a2)">'+esc(q.company_name)+'</td>'
+      +'<td><span style="font-size:10px;background:rgba(124,58,237,.12);color:#a78bfa;padding:2px 7px;border-radius:5px;font-weight:700">'+esc(q.topic)+'</span></td>'
+      +'<td class="td-q" title="'+esc(q.question)+'">'+esc(q.question)+'</td>'
+      +'<td><span class="badge b-'+q.difficulty+'">'+q.difficulty+'</span></td>'
+      +'<td style="font-family:Space Mono,monospace;font-size:11px;color:var(--yellow)">★ '+q.rating+'</td>'
+      +'<td><div style="display:flex;gap:4px">'
+        +'<button class="btn btn-ghost btn-sm" onclick="openEditIvQ('+q.id+')">✏️ Edit</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'iv\','+q.id+',\'interview question #'+q.id+'\')">🗑</button>'
+      +'</div></td>'
+    +'</tr>';
+  }).join('');
+}
+
+function openAddIvQ() {
+  document.getElementById('im-title').textContent = 'Add Interview Question';
+  document.getElementById('im-id').value      = '';
+  ['im-topic','im-question','im-answer','im-notes','im-years','im-role','im-tags'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('im-diff').value   = 'medium';
+  document.getElementById('im-rating').value = '4.0';
+  document.getElementById('im-times').value  = '1';
+  document.getElementById('im-year').value   = '';
+  openModal('iv-modal');
+}
+
+function openEditIvQ(id) {
+  var q = allIvQ.find(function(x){ return x.id===id; });
+  if (!q) return;
+  document.getElementById('im-title').textContent = 'Edit Interview Question #'+id;
+  document.getElementById('im-id').value       = id;
+  document.getElementById('im-company').value  = q.company_id;
+  document.getElementById('im-topic').value    = q.topic||'';
+  document.getElementById('im-question').value = q.question||'';
+  document.getElementById('im-answer').value   = q.answer||'';
+  document.getElementById('im-notes').value    = q.notes||'';
+  document.getElementById('im-diff').value     = q.difficulty||'medium';
+  document.getElementById('im-rating').value   = q.rating||4.0;
+  document.getElementById('im-times').value    = q.times_asked||1;
+  document.getElementById('im-year').value     = q.last_year||'';
+  document.getElementById('im-years').value    = q.years_asked||'';
+  document.getElementById('im-role').value     = q.role_level||'Fresher';
+  document.getElementById('im-tags').value     = q.tags||'';
+  openModal('iv-modal');
+}
+
+function saveIvQ() {
+  var id         = document.getElementById('im-id').value;
+  var company_id = parseInt(document.getElementById('im-company').value);
+  var topic      = document.getElementById('im-topic').value.trim();
+  var question   = document.getElementById('im-question').value.trim();
+  var answer     = document.getElementById('im-answer').value.trim();
+  var notes      = document.getElementById('im-notes').value.trim();
+  var diff       = document.getElementById('im-diff').value;
+  var rating     = parseFloat(document.getElementById('im-rating').value)||4.0;
+  var times      = parseInt(document.getElementById('im-times').value)||1;
+  var year       = parseInt(document.getElementById('im-year').value)||null;
+  var years      = document.getElementById('im-years').value.trim();
+  var role       = document.getElementById('im-role').value.trim()||'Fresher';
+  var tags       = document.getElementById('im-tags').value.trim();
+  if (!topic||!question||!answer) { toast('Topic, question and answer required!','err'); return; }
+  var body = {company_id:company_id,topic:topic,question:question,answer:answer,notes:notes,
+              difficulty:diff,rating:rating,times_asked:times,last_year:year,
+              years_asked:years,role_level:role,tags:tags};
+  var url    = id ? '/api/admin/interview/questions/'+id : '/api/admin/interview/questions';
+  var method = id ? 'PUT' : 'POST';
+  post(url, body, method).then(function(res) {
+    if (res.error) { toast(res.error,'err'); return; }
+    toast(id ? 'Question updated!' : 'Question added!','ok');
+    closeModal('iv-modal');
+    loadIvQ();
+    loadDashboard();
+  });
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────
+function loadUsers() {
+  get('/api/admin/users').then(function(d) {
+    allUsers = d;
+    document.getElementById('users-sub').textContent = d.length + ' total users';
+    var tb = document.getElementById('users-tbody');
+    tb.innerHTML = d.map(function(u) {
+      var joined = u.created_at ? u.created_at.split('T')[0].split(' ')[0] : '—';
+      return '<tr>'
+        +'<td style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px">#'+u.id+'</td>'
+        +'<td><b>'+esc(u.username)+'</b></td>'
+        +'<td style="color:var(--muted);font-size:12px">'+esc(u.email)+'</td>'
+        +'<td>'+esc(u.full_name||'—')+'</td>'
+        +'<td><span class="badge '+(u.is_admin?'b-admin':'b-user')+'">'+(u.is_admin?'Admin':'User')+'</span></td>'
+        +'<td><span class="badge '+(u.is_active?'b-active':'b-inactive')+'">'+(u.is_active?'Active':'Disabled')+'</span></td>'
+        +'<td style="font-size:11px;color:var(--muted)">'+joined+'</td>'
+        +'<td><div style="display:flex;gap:4px">'
+          +(u.is_admin ? '' :
+            '<button class="btn btn-ghost btn-sm" onclick="toggleUser('+u.id+','+u.is_active+')">'+(u.is_active?'🔒 Disable':'✅ Enable')+'</button>'
+            +'<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'user\','+u.id+',\'user '+esc(u.username)+'\')">🗑</button>'
+          )
+        +'</div></td>'
+      +'</tr>';
+    }).join('');
+  });
+}
+
+function toggleUser(uid, currentActive) {
+  post('/api/admin/users/'+uid+'/toggle', {}).then(function(res) {
+    if (res.error) { toast(res.error,'err'); return; }
+    toast(res.is_active ? 'User enabled' : 'User disabled','ok');
+    loadUsers();
+  });
+}
+
+// ── Confirm delete ────────────────────────────────────────────────────────
+function confirmDelete(type, id, label) {
+  document.getElementById('conf-title').textContent = 'Delete ' + label + '?';
+  document.getElementById('conf-msg').textContent   = 'This action cannot be undone. Are you sure?';
+  var okBtn = document.getElementById('conf-ok');
+  okBtn.onclick = function() {
+    closeConfirm();
+    var url = type==='quiz' ? '/api/admin/quiz/questions/'+id
+            : type==='iv'   ? '/api/admin/interview/questions/'+id
+            : '/api/admin/users/'+id;
+    del(url).then(function(res) {
+      if (res.error) { toast(res.error,'err'); return; }
+      toast('Deleted successfully','ok');
+      if (type==='quiz')  loadQuizQ();
+      if (type==='iv')    loadIvQ();
+      if (type==='user')  loadUsers();
+      loadDashboard();
+    });
+  };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); }
+
+// ── Modal helpers ─────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(function(ov) {
+  ov.addEventListener('click', function(e) { if (e.target===ov) ov.classList.remove('open'); });
+});
+
+// ── Logout ────────────────────────────────────────────────────────────────
+function doLogout() {
+  post('/api/auth/logout',{}).then(function(){ location.href='/login'; });
+}
+
+// ── Fetch helpers ─────────────────────────────────────────────────────────
+function get(url) {
+  return fetch(url).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+}
+function post(url, body, method) {
+  return fetch(url, {
+    method: method||'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); }).catch(function(){ return {error:'Network error'}; });
+}
+function del(url) {
+  return fetch(url, {method:'DELETE'}).then(function(r){ return r.json(); }).catch(function(){ return {error:'Network error'}; });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = (type==='ok'?'✅ ':'❌ ') + msg;
+  t.className = 'show ' + (type||'ok');
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.className=''; }, 3000);
+}
+
+// ── Escape ────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s && s!==0) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.overlay.open,.confirm-overlay.open').forEach(function(el){ el.classList.remove('open'); });
+  }
+});
+
+init();
+</script>
+</body>
+</html>

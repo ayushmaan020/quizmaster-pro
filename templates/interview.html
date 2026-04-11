@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep — QuizMaster Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07070f;--s1:#0f0f1c;--s2:#171726;--s3:#1f1f32;
+  --border:#252540;--text:#e8e8f2;--muted:#5a5a80;
+  --accent:#7c3aed;--a2:#06b6d4;
+  --green:#4ade80;--red:#f87171;--yellow:#fbbf24;--orange:#fb923c;
+  --r:14px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.o1{width:500px;height:500px;background:rgba(124,58,237,.1);top:-150px;right:-100px}
+.o2{width:300px;height:300px;background:rgba(6,182,212,.07);bottom:-80px;left:-60px}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px 80px;position:relative;z-index:1}
+
+/* nav */
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0 28px;border-bottom:1px solid var(--border);margin-bottom:28px}
+.logo{font-size:18px;font-weight:800;letter-spacing:-.5px}.logo span{color:var(--accent)}
+.nav-links{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .18s;text-decoration:none;white-space:nowrap}
+.btn-ghost{background:var(--s2);color:var(--text);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:#6d28d9}
+.btn-sm{padding:7px 14px;font-size:12px}
+
+/* hero */
+.hero{margin-bottom:32px}
+.hero h1{font-size:clamp(26px,4vw,48px);font-weight:800;letter-spacing:-1px;margin-bottom:8px;line-height:1.1}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{color:var(--muted);font-size:14px;max-width:580px;line-height:1.6}
+
+/* company scroll */
+.slabel{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.co-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:24px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.co-card{flex-shrink:0;background:var(--s1);border:2px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:100px;text-align:center}
+.co-card:hover,.co-card.active{border-color:var(--accent);background:rgba(124,58,237,.06)}
+.co-card.active{box-shadow:0 0 16px rgba(124,58,237,.2)}
+.co-icon{font-size:22px}.co-name{font-size:11px;font-weight:700}.co-cnt{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace}
+.co-type{font-size:9px;padding:2px 7px;border-radius:99px;font-weight:700}
+.ts{background:rgba(6,182,212,.12);color:var(--a2)}.tp{background:rgba(124,58,237,.12);color:#a78bfa}
+
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.fi{background:var(--s2);border:1px solid var(--border);color:var(--text);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:9px 14px;border-radius:10px;outline:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--muted);font-weight:400}
+.fi-search{flex:1;min-width:180px}
+.fi-sel{cursor:pointer}
+.rcnt{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:auto}
+
+/* layout */
+.layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+
+/* question list */
+.qlist-wrap{position:sticky;top:16px}
+.qlist{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 120px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding-right:2px}
+.qi{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .15s}
+.qi:hover{border-color:rgba(124,58,237,.5);background:rgba(124,58,237,.04)}
+.qi.sel{border-color:var(--accent);background:rgba(124,58,237,.08);box-shadow:inset 3px 0 0 var(--accent)}
+.qi-top{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+.qi-co{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace}
+.qi-topic{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(124,58,237,.15);color:#a78bfa}
+.qi-q{font-size:12px;font-weight:600;line-height:1.4;color:var(--text);margin-bottom:6px}
+.qi-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dd{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.de{background:var(--green)}.dm{background:var(--yellow)}.dh{background:var(--red)}
+.qi-rat{font-size:9px;color:var(--yellow);font-family:'Space Mono',monospace}
+.qi-fire{font-size:9px;color:var(--muted);font-family:'Space Mono',monospace}
+
+/* detail panel */
+.dpanel{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.empty-state{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:60px 32px;text-align:center}
+.empty-state .ei{font-size:44px;margin-bottom:14px}
+.empty-state p{color:var(--muted);font-size:14px;line-height:1.6}
+
+/* detail card */
+.dc{background:var(--s1);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.dc-top{padding:22px 24px 18px;border-bottom:1px solid var(--border)}
+.dc-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.badge{font-size:10px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:6px}
+.b-co{background:var(--s3);color:var(--text)}
+.b-topic{background:rgba(124,58,237,.15);color:#a78bfa}
+.b-easy{background:rgba(74,222,128,.12);color:var(--green)}
+.b-medium{background:rgba(251,191,36,.12);color:var(--yellow)}
+.b-hard{background:rgba(248,113,113,.12);color:var(--red)}
+.b-role{background:rgba(6,182,212,.12);color:var(--a2)}
+.b-tag{background:var(--s3);color:var(--muted)}
+.dc-q{font-size:18px;font-weight:700;line-height:1.45}
+
+/* stats */
+.dc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.sb{background:var(--s1);padding:14px 10px;text-align:center}
+.sv{font-size:18px;font-weight:800;font-family:'Space Mono',monospace;margin-bottom:2px}
+.sl{font-size:9px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:.5px;text-transform:uppercase}
+.sv-stars{color:var(--yellow);font-size:13px}
+.sv-yr{color:var(--a2)}.sv-fire{color:var(--orange)}.sv-grn{color:var(--green)}
+
+/* years */
+.yr-row{padding:14px 24px;border-bottom:1px solid var(--border);background:var(--s2)}
+.yr-lbl{font-size:9px;font-family:'Space Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.yr-chips{display:flex;gap:5px;flex-wrap:wrap}
+.yc{font-size:10px;font-weight:700;font-family:'Space Mono',monospace;padding:3px 9px;border-radius:99px;background:rgba(6,182,212,.1);color:var(--a2);border:1px solid rgba(6,182,212,.2)}
+
+/* answer */
+.ans-sec{padding:20px 24px;border-bottom:1px solid var(--border)}
+.sec-head{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.ans-text{font-size:13px;line-height:1.85;color:var(--text)}
+
+/* notes */
+.notes-sec{padding:16px 24px;background:rgba(251,191,36,.04);border-left:3px solid var(--yellow)}
+.notes-text{font-size:12px;line-height:1.7;color:#c9a84c}
+
+/* actions */
+.dc-actions{padding:14px 24px;display:flex;gap:8px;border-top:1px solid var(--border)}
+
+/* loading */
+.lbar{height:2px;background:linear-gradient(90deg,var(--accent),var(--a2));position:fixed;top:0;left:0;width:0;z-index:999;transition:width .3s;display:none}
+.lbar.on{display:block;animation:ld 1.5s ease infinite}
+@keyframes ld{0%{width:0;opacity:1}80%{width:90%;opacity:1}100%{width:100%;opacity:0}}
+
+/* toast */
+#toast{position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:700;z-index:9999;transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{background:rgba(74,222,128,.12);border:1px solid var(--green);color:var(--green)}
+#toast.err{background:rgba(248,113,113,.12);border:1px solid var(--red);color:var(--red)}
+
+/* no results */
+.nores{text-align:center;padding:60px 20px;color:var(--muted)}
+.nores .ni{font-size:36px;margin-bottom:10px}
+
+@media(max-width:560px){
+  .dc-stats{grid-template-columns:repeat(2,1fr)}
+  .filters{flex-direction:column;align-items:stretch}
+  .fi-search,.fi-sel{width:100%}
+  .rcnt{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div>
+<div class="lbar" id="lbar"></div>
+<div id="toast"></div>
+
+<div class="wrap">
+  <nav>
+    <div class="logo">Quiz<span>Master</span> Pro</div>
+    <div class="nav-links">
+      <a href="/" class="btn btn-ghost btn-sm">🎮 Quiz</a>
+      <a href="/interview" class="btn btn-accent btn-sm">💼 Interview Prep</a>
+      <div style="display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);padding:6px 14px;border-radius:99px">
+        <span style="font-size:12px;font-weight:700" id="iv-user">...</span>
+        <button onclick="fetch('/api/auth/logout',{method:'POST'}).then(()=>location.href='/login')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px" title="Logout">⏻</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <h1>Interview <em>Prep Hub</em></h1>
+    <p>Real questions from TCS, Wipro, Infosys, HCL, Accenture, Amazon, Google & more — with model answers, pro tips, frequency stats, and year-by-year data.</p>
+  </div>
+
+  <div class="slabel">Filter by Company</div>
+  <div class="co-scroll" id="co-scroll">
+    <div class="co-card active" id="co-all" onclick="filterCo(null, this)">
+      <div class="co-icon">🏢</div>
+      <div class="co-name">All</div>
+      <div class="co-cnt" id="all-cnt">— Qs</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input class="fi fi-search" id="s-inp" type="text" placeholder="🔍  Search questions, tags..." oninput="onSearch()">
+    <select class="fi fi-sel" id="topic-sel" onchange="load()">
+      <option value="">All Topics</option>
+    </select>
+    <select class="fi fi-sel" id="diff-sel" onchange="load()">
+      <option value="">All Levels</option>
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <div class="rcnt" id="rcnt">–</div>
+  </div>
+
+  <div class="layout">
+    <div class="qlist-wrap">
+      <div class="slabel">Questions</div>
+      <div class="qlist" id="qlist">
+        <div class="nores"><div class="ni">⏳</div><p>Loading...</p></div>
+      </div>
+    </div>
+
+    <div class="dpanel" id="dpanel">
+      <div class="empty-state">
+        <div class="ei">👈</div>
+        <p>Click any question to read<br>the full answer, pro tips,<br>and interview statistics.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── state ────────────────────────────────────────────────────
+var allQ = [], selCo = null, selQ = null, sTimer = null;
+
+// ── boot ─────────────────────────────────────────────────────
+function boot() {
+  loading(true);
+  Promise.all([
+    get('/api/interview/companies'),
+    get('/api/interview/topics')
+  ]).then(function(res) {
+    buildCompanies(res[0]);
+    buildTopics(res[1]);
+    load();
+  });
+}
+
+function buildCompanies(cos) {
+  var sc = document.getElementById('co-scroll');
+  var total = 0;
+  cos.forEach(function(c) {
+    total += (c.q_count || 0);
+    var d = document.createElement('div');
+    d.className = 'co-card';
+    d.id = 'co-' + c.id;
+    d.innerHTML =
+      '<div class="co-icon">' + c.logo + '</div>' +
+      '<div class="co-name">' + x(c.name) + '</div>' +
+      '<div class="co-cnt">' + c.q_count + ' Qs</div>' +
+      '<div class="co-type ' + (c.type === 'Product' ? 'tp' : 'ts') + '">' + c.type + '</div>';
+    d.onclick = (function(id, el){ return function(){ filterCo(id, el); }; })(c.id, d);
+    sc.appendChild(d);
+  });
+  document.getElementById('all-cnt').textContent = total + ' Qs';
+}
+
+function buildTopics(topics) {
+  var sel = document.getElementById('topic-sel');
+  topics.forEach(function(t) {
+    var o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+// ── load questions ────────────────────────────────────────────
+function load() {
+  loading(true);
+  var url = '/api/interview/questions';
+  var p = [];
+  if (selCo) p.push('company_id=' + selCo);
+  var topic = document.getElementById('topic-sel').value;
+  var diff  = document.getElementById('diff-sel').value;
+  var s     = document.getElementById('s-inp').value.trim();
+  if (topic) p.push('topic=' + encodeURIComponent(topic));
+  if (diff)  p.push('difficulty=' + diff);
+  if (s)     p.push('search=' + encodeURIComponent(s));
+  if (p.length) url += '?' + p.join('&');
+
+  get(url).then(function(qs) {
+    allQ = qs;
+    renderList(qs);
+    loading(false);
+  });
+}
+
+// ── render list ───────────────────────────────────────────────
+function renderList(qs) {
+  document.getElementById('rcnt').textContent = qs.length + ' question' + (qs.length !== 1 ? 's' : '');
+  var list = document.getElementById('qlist');
+
+  if (!qs.length) {
+    list.innerHTML = '<div class="nores"><div class="ni">🔍</div><p>No questions found.</p></div>';
+    return;
+  }
+
+  var html = '';
+  qs.forEach(function(q, i) {
+    var isSel = selQ && selQ.id === q.id;
+    var dc = q.difficulty === 'easy' ? 'de' : q.difficulty === 'hard' ? 'dh' : 'dm';
+    html +=
+      '<div class="qi' + (isSel ? ' sel' : '') + '" id="qi-' + q.id + '" onclick="pick(' + i + ')">' +
+        '<div class="qi-top">' +
+          '<span class="qi-co">' + x(q.company_name) + '</span>' +
+          '<span class="qi-topic">' + x(q.topic) + '</span>' +
+        '</div>' +
+        '<div class="qi-q">' + x(q.question) + '</div>' +
+        '<div class="qi-meta">' +
+          '<div class="dd ' + dc + '"></div>' +
+          '<span class="qi-rat">★ ' + q.rating + '</span>' +
+          '<span class="qi-fire">🔥 ' + q.times_asked + 'x</span>' +
+          '<span style="font-size:9px;color:var(--muted);font-family:\'Space Mono\',monospace">' + (q.last_year || '—') + '</span>' +
+        '</div>' +
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
+// ── pick question ─────────────────────────────────────────────
+function pick(idx) {
+  selQ = allQ[idx];
+  document.querySelectorAll('.qi').forEach(function(e){ e.classList.remove('sel'); });
+  var el = document.getElementById('qi-' + selQ.id);
+  if (el) el.classList.add('sel');
+  renderDetail(selQ);
+  // On mobile scroll detail into view
+  document.getElementById('dpanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function renderDetail(q) {
+  var yrs = q.years_asked ? q.years_asked.split(',') : [];
+  var tags = q.tags ? q.tags.split(',') : [];
+
+  var tagHtml = tags.map(function(t){
+    return '<span class="badge b-tag">#' + x(t.trim()) + '</span>';
+  }).join('');
+
+  var yrHtml = yrs.map(function(y){
+    return '<span class="yc">' + y.trim() + '</span>';
+  }).join('');
+
+  var ansHtml = x(q.answer || '').replace(/\n/g, '<br>');
+  var notHtml = q.notes ? x(q.notes).replace(/\n/g, '<br>') : '';
+
+  var html =
+    '<div class="dc">' +
+      '<div class="dc-top">' +
+        '<div class="dc-badges">' +
+          '<span class="badge b-co">' + x(q.company_name) + ' ' + (q.logo || '') + '</span>' +
+          '<span class="badge b-topic">' + x(q.topic) + '</span>' +
+          '<span class="badge b-' + q.difficulty + '">' + q.difficulty.toUpperCase() + '</span>' +
+          '<span class="badge b-role">👤 ' + x(q.role_level) + '</span>' +
+          tagHtml +
+        '</div>' +
+        '<div class="dc-q">' + x(q.question) + '</div>' +
+      '</div>' +
+
+      '<div class="dc-stats">' +
+        '<div class="sb"><div class="sv sv-stars">' + starsStr(q.rating) + '</div><div class="sl">Rating ' + q.rating + '/5</div></div>' +
+        '<div class="sb"><div class="sv sv-fire">🔥 ' + q.times_asked + '</div><div class="sl">Times Asked</div></div>' +
+        '<div class="sb"><div class="sv sv-yr">' + (q.last_year || '—') + '</div><div class="sl">Last Asked</div></div>' +
+        '<div class="sb"><div class="sv sv-grn">' + yrs.length + '</div><div class="sl">Years Active</div></div>' +
+      '</div>' +
+
+      (yrs.length ?
+        '<div class="yr-row"><div class="yr-lbl">Asked In These Years</div><div class="yr-chips">' + yrHtml + '</div></div>'
+      : '') +
+
+      '<div class="ans-sec">' +
+        '<div class="sec-head">✅ Model Answer</div>' +
+        '<div class="ans-text">' + ansHtml + '</div>' +
+      '</div>' +
+
+      (notHtml ?
+        '<div class="notes-sec">' +
+          '<div class="sec-head" style="color:var(--yellow)">💡 Pro Interview Tips</div>' +
+          '<div class="notes-text">' + notHtml + '</div>' +
+        '</div>'
+      : '') +
+
+      '<div class="dc-actions">' +
+        '<button class="btn btn-ghost btn-sm" onclick="prevQ()">← Prev</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="nextQ()">Next →</button>' +
+        '<button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="copyQA()">📋 Copy</button>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('dpanel').innerHTML = html;
+}
+
+function prevQ() {
+  var idx = allQ.findIndex(function(q){ return q.id === selQ.id; });
+  if (idx > 0) { pick(idx - 1); scrollToQi(allQ[idx-1].id); }
+}
+function nextQ() {
+  var idx = allQ.findIndex(function(q){ return q.id === selQ.id; });
+  if (idx < allQ.length - 1) { pick(idx + 1); scrollToQi(allQ[idx+1].id); }
+}
+function scrollToQi(id) {
+  var el = document.getElementById('qi-' + id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function copyQA() {
+  if (!selQ) return;
+  var txt = 'Q: ' + selQ.question + '\n\nA: ' + selQ.answer + '\n\nTips: ' + (selQ.notes || '—');
+  navigator.clipboard.writeText(txt).then(function(){ toast('Copied!','ok'); }).catch(function(){ toast('Failed','err'); });
+}
+
+// ── filters ───────────────────────────────────────────────────
+function filterCo(id, el) {
+  selCo = id;
+  document.querySelectorAll('.co-card').forEach(function(c){ c.classList.remove('active'); });
+  el.classList.add('active');
+  selQ = null;
+  document.getElementById('dpanel').innerHTML =
+    '<div class="empty-state"><div class="ei">👈</div><p>Select a question to read the answer.</p></div>';
+  load();
+}
+
+function onSearch() {
+  clearTimeout(sTimer);
+  sTimer = setTimeout(load, 320);
+}
+
+// ── helpers ───────────────────────────────────────────────────
+function starsStr(r) {
+  var s = '';
+  for (var i = 1; i <= 5; i++) {
+    if (i <= Math.floor(r)) s += '★';
+    else if (i === Math.ceil(r) && r % 1 >= 0.5) s += '½';
+    else s += '☆';
+  }
+  return s;
+}
+
+function x(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function loading(on) {
+  document.getElementById('lbar').className = on ? 'lbar on' : 'lbar';
+}
+
+function get(url) {
+  return fetch(url).then(function(r){ return r.json(); }).catch(function(){ return []; });
+}
+
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || 'ok');
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.className = ''; }, 2600);
+}
+
+boot();
+fetch('/api/auth/me').then(function(r){return r.json();}).then(function(d){
+  if (!d.logged_in) { window.location.href='/login'; return; }
+  var el = document.getElementById('iv-user');
+  if (el) el.textContent = '👤 ' + (d.full_name || d.username);
+});
+</script>
+</body>
+</html>
