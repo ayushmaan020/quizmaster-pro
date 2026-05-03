@@ -228,6 +228,16 @@ def init_db():
             tags        TEXT
         )""")
 
+    # ── Migrate: if is_admin/is_active were created as INTEGER, convert to BOOLEAN
+    c.execute("""
+        SELECT data_type FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'is_admin'
+    """)
+    col = c.fetchone()
+    if col and col[0] == 'integer':
+        c.execute("ALTER TABLE users ALTER COLUMN is_admin TYPE BOOLEAN USING is_admin::boolean")
+        c.execute("ALTER TABLE users ALTER COLUMN is_active TYPE BOOLEAN USING is_active::boolean")
+
     # ── Seed admin ────────────────────────────────────────────────────────────
     c.execute("SELECT COUNT(*) FROM users WHERE is_admin = TRUE")
     if c.fetchone()[0] == 0:
