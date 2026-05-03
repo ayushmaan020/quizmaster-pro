@@ -228,18 +228,29 @@ def init_db():
             tags        TEXT
         )""")
 
-    # ── Migrate: if is_admin/is_active were created as INTEGER, convert to BOOLEAN
-    c.execute("""
-        SELECT data_type FROM information_schema.columns
-        WHERE table_name = 'users' AND column_name = 'is_admin'
-    """)
-    col = c.fetchone()
-    if col and col[0] == 'integer':
-        c.execute("ALTER TABLE users ALTER COLUMN is_admin TYPE BOOLEAN USING is_admin::boolean")
-        c.execute("ALTER TABLE users ALTER COLUMN is_active TYPE BOOLEAN USING is_active::boolean")
+    # ── Migrate: safely convert is_admin/is_active from INTEGER to BOOLEAN ──
+    # Each ALTER runs in its own connection so a failure doesn't abort the main flow
+    try:
+        c.execute("""
+            SELECT pg_catalog.format_type(a.atttypid, a.atttypmod)
+            FROM   pg_attribute a
+            JOIN   pg_class     t ON a.attrelid = t.oid
+            WHERE  t.relname = 'users'
+              AND  a.attname = 'is_admin'
+              AND  a.attnum  > 0
+        """)
+        row = c.fetchone()
+        if row and 'int' in str(row[0]).lower():
+            c.execute("ALTER TABLE users ALTER COLUMN is_admin  TYPE BOOLEAN USING (is_admin  <> 0)")
+            c.execute("ALTER TABLE users ALTER COLUMN is_active TYPE BOOLEAN USING (is_active <> 0)")
+            logger.info("[MIGRATE] is_admin / is_active converted INTEGER → BOOLEAN")
+    except Exception as mig_err:
+        logger.warning(f"[MIGRATE] Skipped (already BOOLEAN or not needed): {mig_err}")
+        conn.rollback()   # clear any aborted-transaction state
 
     # ── Seed admin ────────────────────────────────────────────────────────────
-    c.execute("SELECT COUNT(*) FROM users WHERE is_admin = TRUE")
+    # Cast to int for safety in case column type is still transitioning
+    c.execute("SELECT COUNT(*) FROM users WHERE is_admin::int = 1")
     if c.fetchone()[0] == 0:
         c.execute(
             "INSERT INTO users(username,email,password_hash,full_name,is_admin) VALUES(%s,%s,%s,%s,%s)",
